@@ -1,0 +1,21 @@
+{
+  "name": "claude-ci-skills",
+  "version": "1.0.0",
+  "description": "Modular CI/CD Skills for Claude Code - Test Pyramid, Quality Gates, Deployment Pipelines, and more",
+  "author": "p3nGu1nZz",
+  "license": "MIT",
+  "homepage": "https://github.com/p3nGu1nZz/claude-ci-skills",
+  "repository": "https://github.com/p3nGu1nZz/claude-ci-skills.git",
+  "keywords": [
+    "ci",
+    "cd",
+    "github-actions",
+    "test-pyramid",
+    "quality-gates",
+    "deployment",
+    "security",
+    "performance",
+    "devops"
+  ],
+  "skills": "./skills/"
+}

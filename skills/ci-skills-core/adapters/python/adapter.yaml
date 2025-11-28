@@ -1,0 +1,128 @@
+# Python Language Adapter
+# Defines Python-specific CI configurations
+
+language: python
+version_range: ">=3.9"
+package_manager: pip
+
+# File indicators for detection
+indicators:
+  files:
+    - pyproject.toml
+    - setup.py
+    - requirements.txt
+    - setup.cfg
+  directories:
+    - src/
+    - tests/
+
+# Test framework configuration
+test:
+  framework: pytest
+  config_files:
+    - pytest.ini
+    - pyproject.toml
+    - setup.cfg
+    - conftest.py
+
+  # Test markers for pyramid classification
+  markers:
+    unit: "@pytest.mark.unit"
+    integration: "@pytest.mark.integration"
+    e2e: "@pytest.mark.e2e"
+    smoke: "@pytest.mark.smoke"
+    slow: "@pytest.mark.slow"
+    performance: "@pytest.mark.performance"
+
+  # Commands
+  commands:
+    install_deps: "pip install -r requirements.txt"
+    install_test_deps: "pip install pytest pytest-cov pytest-asyncio"
+    run_all: "pytest"
+    run_unit: "pytest -m unit"
+    run_integration: "pytest -m integration"
+    run_e2e: "pytest -m e2e"
+    run_smoke: "pytest -m smoke"
+    coverage: "pytest --cov=src --cov-report=xml --cov-report=html"
+    coverage_report: "coverage report --fail-under=80"
+
+  # pytest.ini marker definitions
+  marker_definitions:
+    - "unit: Unit tests - fast, isolated, no external dependencies"
+    - "integration: Integration tests - test component interactions"
+    - "e2e: End-to-end tests - full system tests"
+    - "smoke: Smoke tests - quick sanity checks"
+    - "slow: Slow tests - may take longer than 1 second"
+    - "performance: Performance tests - benchmark and load tests"
+
+# Linting configuration
+lint:
+  tools:
+    - name: flake8
+      install: "pip install flake8"
+      command: "flake8"
+      config_file: ".flake8"
+      default_config:
+        max_line_length: 100
+        extend_ignore: "E203,W503"
+        exclude: ".git,__pycache__,build,dist,.venv"
+
+    - name: black
+      install: "pip install black"
+      command: "black --check"
+      fix_command: "black"
+      config_file: "pyproject.toml"
+      default_config:
+        line_length: 100
+        target_version: ["py39", "py310", "py311"]
+
+    - name: isort
+      install: "pip install isort"
+      command: "isort --check-only"
+      fix_command: "isort"
+      config_file: "pyproject.toml"
+      default_config:
+        profile: "black"
+        line_length: 100
+
+    - name: mypy
+      install: "pip install mypy"
+      command: "mypy src/"
+      config_file: "pyproject.toml"
+      default_config:
+        python_version: "3.11"
+        strict: true
+        ignore_missing_imports: true
+
+    - name: bandit
+      install: "pip install bandit"
+      command: "bandit -r src/"
+      description: "Security linter"
+
+# Build configuration
+build:
+  command: "python -m build"
+  artifacts:
+    - "dist/*.whl"
+    - "dist/*.tar.gz"
+
+# Dependency management
+dependencies:
+  install: "pip install -r requirements.txt"
+  dev_install: "pip install -r requirements-dev.txt"
+  lock: "pip freeze > requirements.lock"
+  audit: "pip-audit"
+
+# Virtual environment
+venv:
+  create: "python -m venv .venv"
+  activate_unix: "source .venv/bin/activate"
+  activate_windows: ".venv\\Scripts\\activate"
+
+# GitHub Actions specific
+github_actions:
+  setup_action: "actions/setup-python@v5"
+  cache_key: "pip-${{ hashFiles('**/requirements*.txt') }}"
+  cache_paths:
+    - "~/.cache/pip"
+    - ".venv"

@@ -1,0 +1,70 @@
+# Default configuration for ci-quality-gates skill
+
+# Pre-commit configuration
+pre_commit:
+  enabled: true
+  install_hooks: true
+  autoupdate: weekly
+
+# Python quality tools
+python:
+  line_length: 100
+  target_versions: ["py39", "py310", "py311"]
+
+  # Linters
+  flake8: true
+  black: true
+  isort: true
+  mypy: true
+  bandit: true
+  ruff: false  # Alternative to flake8
+
+  # Flake8 configuration
+  flake8_config:
+    extend_ignore: ["E203", "W503"]
+    per_file_ignores:
+      "__init__.py": ["F401"]
+    exclude:
+      - .git
+      - __pycache__
+      - build
+      - dist
+      - .venv
+
+# JavaScript/TypeScript quality tools
+javascript:
+  # ESLint
+  eslint: true
+  eslint_extends:
+    - "eslint:recommended"
+    - "plugin:@typescript-eslint/recommended"
+
+  # Prettier
+  prettier: true
+  prettier_config:
+    semi: true
+    singleQuote: true
+    tabWidth: 2
+    trailingComma: "es5"
+    printWidth: 100
+
+  # TypeScript
+  typescript: true
+
+# Go quality tools
+go:
+  gofmt: true
+  govet: true
+  golangci_lint: true
+
+# Rust quality tools
+rust:
+  rustfmt: true
+  clippy: true
+  clippy_deny: ["warnings"]
+
+# CI behavior
+ci:
+  fail_on_lint_errors: true
+  continue_on_type_errors: true
+  continue_on_security_warnings: true

@@ -1,0 +1,135 @@
+# CI Skills Configuration Schema
+# Copy this file to your project root and customize
+
+version: "1.0"
+
+project:
+  # Project name (used in workflow names and comments)
+  name: "my-project"
+
+  # Primary and secondary languages
+  languages:
+    primary: "python"  # python | javascript | go | rust
+    secondary: []      # Additional languages in the project
+
+# Test Pyramid Configuration
+test-pyramid:
+  enabled: true
+
+  # Target distribution (must sum to 100)
+  targets:
+    unit: 70
+    integration: 20
+    e2e: 10
+
+  # Minimum pyramid health score (0-10)
+  minimum_score: 5.5
+
+  # Fail CI if score below threshold
+  fail_on_low_score: true
+
+  # Generate PR comments with pyramid report
+  pr_comments: true
+
+# Quality Gates Configuration
+quality-gates:
+  enabled: true
+
+  # Install pre-commit hooks
+  pre-commit: true
+
+  # Linters per language (use adapter defaults if empty)
+  linters:
+    python: []     # e.g., ["flake8", "black", "isort", "mypy"]
+    javascript: [] # e.g., ["eslint", "prettier"]
+    go: []         # e.g., ["golangci-lint"]
+    rust: []       # e.g., ["clippy", "rustfmt"]
+
+  # Fail CI on lint errors
+  fail_on_lint_errors: true
+
+# Local Validation Configuration
+local-validation:
+  enabled: true
+
+  # Generate local-ci.sh script
+  generate_script: true
+
+  # Available modes
+  modes:
+    fast: true      # Quick validation (~30s)
+    full: true      # Complete CI check (~5min)
+    pyramid: true   # Pyramid check only
+    markers: true   # Marker validation only
+
+# Security Scanning Configuration
+security:
+  enabled: true
+
+  # Scanners to use
+  scanners:
+    trivy: true     # Container vulnerability scanning
+    codeql: true    # Static analysis
+    sbom: true      # Software Bill of Materials
+
+  # Severity threshold (critical, high, medium, low)
+  fail_on_severity: "high"
+
+# Performance Gates Configuration
+performance:
+  enabled: true
+
+  # Lighthouse CI (frontend projects)
+  lighthouse:
+    enabled: true
+    thresholds:
+      performance: 90
+      accessibility: 90
+      best_practices: 90
+      seo: 90
+
+  # Bundle size limits (KB gzipped)
+  bundle_size:
+    enabled: true
+    initial: 400    # Initial bundle
+    chunk: 200      # Per-chunk limit
+
+  # Test speed regression
+  speed_regression:
+    enabled: true
+    slow_test_threshold_ms: 1000
+    max_slow_tests: 10
+
+# Deployment Configuration
+deploy:
+  enabled: true
+
+  # Environments to deploy to
+  environments:
+    - staging
+    - production
+
+  # Deployment strategy
+  strategy: "blue-green"  # blue-green | rolling | canary
+
+  # Container registry
+  registry:
+    enabled: true
+    type: "ghcr"  # ghcr | ecr | gcr | dockerhub
+
+  # Kubernetes deployment
+  kubernetes:
+    enabled: false
+    cluster: ""
+    namespace: "default"
+
+  # Health checks
+  health_check:
+    enabled: true
+    endpoint: "/health"
+    timeout_seconds: 30
+
+  # Rollback configuration
+  rollback:
+    enabled: true
+    auto_rollback_on_failure: true

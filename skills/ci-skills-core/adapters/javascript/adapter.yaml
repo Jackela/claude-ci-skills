@@ -1,0 +1,163 @@
+# JavaScript/TypeScript Language Adapter
+# Defines JS/TS-specific CI configurations
+
+language: javascript
+alternate_names:
+  - typescript
+  - node
+  - nodejs
+version_range: ">=18"
+package_manager: npm  # npm | yarn | pnpm
+
+# File indicators for detection
+indicators:
+  files:
+    - package.json
+    - tsconfig.json
+    - .npmrc
+    - yarn.lock
+    - pnpm-lock.yaml
+  directories:
+    - src/
+    - lib/
+    - node_modules/
+
+# Test framework configuration
+test:
+  frameworks:
+    vitest:
+      config_files:
+        - vitest.config.ts
+        - vitest.config.js
+        - vite.config.ts
+      commands:
+        run_all: "npx vitest run"
+        run_unit: "npx vitest run --grep 'unit'"
+        run_integration: "npx vitest run --grep 'integration'"
+        watch: "npx vitest"
+        coverage: "npx vitest run --coverage"
+        ui: "npx vitest --ui"
+
+    jest:
+      config_files:
+        - jest.config.js
+        - jest.config.ts
+        - jest.config.json
+      commands:
+        run_all: "npx jest"
+        run_unit: "npx jest --testPathPattern='unit'"
+        run_integration: "npx jest --testPathPattern='integration'"
+        watch: "npx jest --watch"
+        coverage: "npx jest --coverage"
+
+    playwright:
+      config_files:
+        - playwright.config.ts
+        - playwright.config.js
+      commands:
+        run_all: "npx playwright test"
+        run_smoke: "npx playwright test --grep '@smoke'"
+        headed: "npx playwright test --headed"
+        ui: "npx playwright test --ui"
+
+  # Test markers/tags
+  markers:
+    unit: "describe.concurrent('unit:', ...)"
+    integration: "describe('integration:', ...)"
+    e2e: "@e2e tag in test name"
+    smoke: "@smoke tag"
+
+  # Default commands (vitest)
+  commands:
+    install_deps: "npm ci"
+    install_test_deps: "npm install -D vitest @vitest/coverage-v8"
+    run_all: "npm test"
+    run_unit: "npm run test:unit"
+    run_integration: "npm run test:integration"
+    run_e2e: "npm run test:e2e"
+    coverage: "npm run test:coverage"
+
+# Linting configuration
+lint:
+  tools:
+    - name: eslint
+      install: "npm install -D eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser"
+      command: "npx eslint . --ext .ts,.tsx,.js,.jsx"
+      fix_command: "npx eslint . --ext .ts,.tsx,.js,.jsx --fix"
+      config_files:
+        - .eslintrc.js
+        - .eslintrc.json
+        - .eslintrc.yaml
+        - eslint.config.js
+      default_config:
+        extends:
+          - "eslint:recommended"
+          - "plugin:@typescript-eslint/recommended"
+        rules:
+          "@typescript-eslint/no-unused-vars": "error"
+          "no-console": "warn"
+
+    - name: prettier
+      install: "npm install -D prettier"
+      command: "npx prettier --check ."
+      fix_command: "npx prettier --write ."
+      config_files:
+        - .prettierrc
+        - .prettierrc.json
+        - prettier.config.js
+      default_config:
+        semi: true
+        singleQuote: true
+        tabWidth: 2
+        trailingComma: "es5"
+
+    - name: typescript
+      install: "npm install -D typescript"
+      command: "npx tsc --noEmit"
+      config_files:
+        - tsconfig.json
+
+# Build configuration
+build:
+  commands:
+    dev: "npm run dev"
+    build: "npm run build"
+    preview: "npm run preview"
+  artifacts:
+    - "dist/"
+    - "build/"
+    - ".next/"
+
+# Dependency management
+dependencies:
+  install: "npm ci"
+  dev_install: "npm install"
+  lock: "npm install --package-lock-only"
+  audit: "npm audit"
+  outdated: "npm outdated"
+
+# Bundle analysis
+bundle:
+  analyze: "npx vite-bundle-visualizer"
+  size_check: "npx bundlesize"
+
+# GitHub Actions specific
+github_actions:
+  setup_action: "actions/setup-node@v4"
+  cache_key: "node-${{ hashFiles('**/package-lock.json') }}"
+  cache_paths:
+    - "~/.npm"
+    - "node_modules"
+
+# Frontend specific (React, Vue, etc.)
+frontend:
+  frameworks:
+    react:
+      indicators: ["react", "react-dom"]
+      test_library: "@testing-library/react"
+    vue:
+      indicators: ["vue"]
+      test_library: "@vue/test-utils"
+    svelte:
+      indicators: ["svelte"]
+      test_library: "@testing-library/svelte"

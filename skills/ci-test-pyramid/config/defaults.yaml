@@ -1,0 +1,43 @@
+# Default configuration for ci-test-pyramid skill
+
+# Target distribution (must sum to 100)
+targets:
+  unit: 70
+  integration: 20
+  e2e: 10
+
+# Minimum pyramid health score (0-10)
+minimum_score: 5.5
+
+# Fail CI if score below threshold
+fail_on_low_score: true
+
+# Generate PR comments with pyramid report
+pr_comments: true
+
+# Additional markers beyond unit/integration/e2e
+additional_markers:
+  - name: smoke
+    description: Smoke tests - quick sanity checks
+  - name: slow
+    description: Slow tests - may take longer than 1 second
+  - name: performance
+    description: Performance tests - benchmark and load tests
+
+# Scoring weights
+scoring:
+  # Points deducted per percentage point deviation from target
+  deviation_penalty: 0.1
+  # Points deducted per percentage of uncategorized tests
+  uncategorized_penalty: 0.2
+
+# Report generation
+reports:
+  # Formats to generate
+  formats:
+    - console
+    - json
+    - markdown
+  # Save historical data
+  save_history: true
+  history_dir: .pyramid-history

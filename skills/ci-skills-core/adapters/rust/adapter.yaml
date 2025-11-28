@@ -1,0 +1,128 @@
+# Rust Language Adapter
+# Defines Rust-specific CI configurations
+
+language: rust
+version_range: ">=1.70"
+package_manager: cargo
+
+# File indicators for detection
+indicators:
+  files:
+    - Cargo.toml
+    - Cargo.lock
+    - rust-toolchain.toml
+  patterns:
+    - "*.rs"
+    - "src/main.rs"
+    - "src/lib.rs"
+
+# Test framework configuration
+test:
+  framework: cargo test
+  config_files:
+    - Cargo.toml
+
+  # Test markers (via module organization and attributes)
+  markers:
+    unit: "#[test] in src/ modules"
+    integration: "#[test] in tests/ directory"
+    e2e: "#[test] // e2e marker in doc comment"
+
+  # Commands
+  commands:
+    install_deps: "cargo fetch"
+    run_all: "cargo test"
+    run_unit: "cargo test --lib"
+    run_integration: "cargo test --test '*'"
+    run_doc: "cargo test --doc"
+    run_ignored: "cargo test -- --ignored"
+    coverage: "cargo tarpaulin --out Xml"
+    coverage_html: "cargo tarpaulin --out Html"
+    nextest: "cargo nextest run"  # Faster test runner
+
+  # Test organization
+  conventions:
+    unit_tests: "src/**/*.rs with #[cfg(test)] modules"
+    integration_tests: "tests/*.rs"
+    doc_tests: "/// ``` code blocks in documentation"
+
+# Linting configuration
+lint:
+  tools:
+    - name: clippy
+      command: "cargo clippy -- -D warnings"
+      fix_command: "cargo clippy --fix"
+      description: "Rust linter"
+      default_config:
+        deny:
+          - clippy::all
+          - clippy::pedantic
+        allow:
+          - clippy::module_name_repetitions
+
+    - name: rustfmt
+      command: "cargo fmt --check"
+      fix_command: "cargo fmt"
+      config_file: "rustfmt.toml"
+      default_config:
+        edition: "2021"
+        max_width: 100
+        tab_spaces: 4
+
+    - name: cargo check
+      command: "cargo check --all-targets"
+      description: "Type checking without full build"
+
+# Build configuration
+build:
+  commands:
+    dev: "cargo build"
+    release: "cargo build --release"
+    check: "cargo check"
+    doc: "cargo doc --no-deps"
+  artifacts:
+    - "target/release/"
+    - "target/debug/"
+  cross_compile:
+    linux_musl: "cross build --target x86_64-unknown-linux-musl --release"
+
+# Dependency management
+dependencies:
+  install: "cargo fetch"
+  update: "cargo update"
+  audit: "cargo audit"
+  outdated: "cargo outdated"
+  tree: "cargo tree"
+
+# Security scanning
+security:
+  cargo_audit:
+    install: "cargo install cargo-audit"
+    command: "cargo audit"
+  cargo_deny:
+    install: "cargo install cargo-deny"
+    command: "cargo deny check"
+
+# Performance
+benchmark:
+  command: "cargo bench"
+  criterion: "cargo bench --bench benchmarks"
+
+# GitHub Actions specific
+github_actions:
+  setup_action: "dtolnay/rust-toolchain@stable"
+  cache_action: "Swatinem/rust-cache@v2"
+  cache_key: "rust-${{ hashFiles('**/Cargo.lock') }}"
+  cache_paths:
+    - "~/.cargo/registry"
+    - "~/.cargo/git"
+    - "target"
+
+# Toolchain management
+toolchain:
+  stable: "rustup default stable"
+  nightly: "rustup default nightly"
+  components:
+    - rustfmt
+    - clippy
+    - llvm-tools-preview

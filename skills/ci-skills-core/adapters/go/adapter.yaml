@@ -1,0 +1,120 @@
+# Go Language Adapter
+# Defines Go-specific CI configurations
+
+language: go
+version_range: ">=1.21"
+package_manager: go mod
+
+# File indicators for detection
+indicators:
+  files:
+    - go.mod
+    - go.sum
+    - main.go
+  patterns:
+    - "*.go"
+    - "*_test.go"
+
+# Test framework configuration
+test:
+  framework: go test
+  config_files: []  # Go uses conventions, not config files
+
+  # Test markers (via naming conventions and build tags)
+  markers:
+    unit: "// +build unit OR files in *_test.go without external deps"
+    integration: "// +build integration"
+    e2e: "// +build e2e"
+
+  # Commands
+  commands:
+    install_deps: "go mod download"
+    run_all: "go test ./..."
+    run_unit: "go test -tags=unit ./..."
+    run_integration: "go test -tags=integration ./..."
+    run_e2e: "go test -tags=e2e ./..."
+    run_short: "go test -short ./..."
+    coverage: "go test -coverprofile=coverage.out ./..."
+    coverage_html: "go tool cover -html=coverage.out -o coverage.html"
+    coverage_report: "go tool cover -func=coverage.out"
+    race: "go test -race ./..."
+    benchmark: "go test -bench=. ./..."
+
+  # Test file conventions
+  conventions:
+    test_suffix: "_test.go"
+    benchmark_prefix: "Benchmark"
+    example_prefix: "Example"
+
+# Linting configuration
+lint:
+  tools:
+    - name: golangci-lint
+      install: "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
+      command: "golangci-lint run"
+      fix_command: "golangci-lint run --fix"
+      config_file: ".golangci.yml"
+      default_config:
+        linters:
+          enable:
+            - errcheck
+            - gosimple
+            - govet
+            - ineffassign
+            - staticcheck
+            - unused
+            - gofmt
+            - goimports
+
+    - name: go vet
+      command: "go vet ./..."
+      description: "Go's built-in static analyzer"
+
+    - name: gofmt
+      command: "gofmt -l ."
+      fix_command: "gofmt -w ."
+      description: "Format Go code"
+
+    - name: goimports
+      install: "go install golang.org/x/tools/cmd/goimports@latest"
+      command: "goimports -l ."
+      fix_command: "goimports -w ."
+
+    - name: staticcheck
+      install: "go install honnef.co/go/tools/cmd/staticcheck@latest"
+      command: "staticcheck ./..."
+
+# Build configuration
+build:
+  commands:
+    build: "go build -o bin/ ./..."
+    build_all: "go build -v ./..."
+    install: "go install ./..."
+  artifacts:
+    - "bin/"
+  cross_compile:
+    linux_amd64: "GOOS=linux GOARCH=amd64 go build -o bin/app-linux-amd64"
+    darwin_amd64: "GOOS=darwin GOARCH=amd64 go build -o bin/app-darwin-amd64"
+    windows_amd64: "GOOS=windows GOARCH=amd64 go build -o bin/app-windows-amd64.exe"
+
+# Dependency management
+dependencies:
+  install: "go mod download"
+  tidy: "go mod tidy"
+  verify: "go mod verify"
+  vendor: "go mod vendor"
+  audit: "go list -json -m all | nancy sleuth"
+
+# Security scanning
+security:
+  govulncheck:
+    install: "go install golang.org/x/vuln/cmd/govulncheck@latest"
+    command: "govulncheck ./..."
+
+# GitHub Actions specific
+github_actions:
+  setup_action: "actions/setup-go@v5"
+  cache_key: "go-${{ hashFiles('**/go.sum') }}"
+  cache_paths:
+    - "~/go/pkg/mod"
+    - "~/.cache/go-build"

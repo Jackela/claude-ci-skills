@@ -1,0 +1,78 @@
+# Default values for CI Skills
+# These are used when project doesn't specify values
+
+version: "1.0"
+
+test-pyramid:
+  targets:
+    unit: 70
+    integration: 20
+    e2e: 10
+  minimum_score: 5.5
+  fail_on_low_score: true
+  pr_comments: true
+
+quality-gates:
+  pre-commit: true
+  fail_on_lint_errors: true
+
+  # Default linters per language
+  default_linters:
+    python:
+      - flake8
+      - black
+      - isort
+    javascript:
+      - eslint
+      - prettier
+    go:
+      - golangci-lint
+    rust:
+      - clippy
+      - rustfmt
+
+local-validation:
+  generate_script: true
+  modes:
+    fast: true
+    full: true
+    pyramid: true
+    markers: true
+
+security:
+  scanners:
+    trivy: true
+    codeql: true
+    sbom: true
+  fail_on_severity: "high"
+
+performance:
+  lighthouse:
+    thresholds:
+      performance: 90
+      accessibility: 90
+      best_practices: 90
+      seo: 90
+  bundle_size:
+    initial: 400
+    chunk: 200
+  speed_regression:
+    slow_test_threshold_ms: 1000
+    max_slow_tests: 10
+
+deploy:
+  strategy: "blue-green"
+  registry:
+    type: "ghcr"
+  health_check:
+    endpoint: "/health"
+    timeout_seconds: 30
+  rollback:
+    auto_rollback_on_failure: true
+
+# GitHub Actions defaults
+github_actions:
+  node_version: "20"
+  python_version: "3.11"
+  go_version: "1.21"
+  rust_version: "stable"
