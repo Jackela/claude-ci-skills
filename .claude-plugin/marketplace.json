@@ -1,0 +1,21 @@
+{
+  "name": "claude-ci-skills",
+  "owner": {
+    "name": "Jackela",
+    "email": ""
+  },
+  "plugins": [
+    {
+      "name": "claude-ci-skills",
+      "source": "./",
+      "description": "Modular CI/CD Skills for Claude Code - Test Pyramid, Quality Gates, Deployment Pipelines",
+      "version": "1.0.0",
+      "author": {
+        "name": "Jackela"
+      },
+      "license": "MIT",
+      "keywords": ["ci", "cd", "github-actions", "test-pyramid", "quality-gates", "deployment"],
+      "skills": "./skills/"
+    }
+  ]
+}
