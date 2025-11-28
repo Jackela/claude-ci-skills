@@ -14,7 +14,7 @@ A modular, extensible CI/CD Skills framework for Claude Code. Package your CI be
 ## Installation
 
 ```bash
-claude /plugin https://github.com/p3nGu1nZz/claude-ci-skills
+claude /plugin https://github.com/Jackela/claude-ci-skills
 ```
 
 ## Quick Start

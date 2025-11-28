@@ -2,10 +2,10 @@
   "name": "claude-ci-skills",
   "version": "1.0.0",
   "description": "Modular CI/CD Skills for Claude Code - Test Pyramid, Quality Gates, Deployment Pipelines, and more",
-  "author": "p3nGu1nZz",
+  "author": "Jackela",
   "license": "MIT",
-  "homepage": "https://github.com/p3nGu1nZz/claude-ci-skills",
-  "repository": "https://github.com/p3nGu1nZz/claude-ci-skills.git",
+  "homepage": "https://github.com/Jackela/claude-ci-skills",
+  "repository": "https://github.com/Jackela/claude-ci-skills.git",
   "keywords": [
     "ci",
     "cd",
