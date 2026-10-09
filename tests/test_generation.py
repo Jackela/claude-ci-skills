@@ -3,6 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 import yaml
+import configparser
+import subprocess
 from jinja2 import UndefinedError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -56,6 +58,73 @@ class GenerationTests(unittest.TestCase):
             (templates / 'broken.yml.j2').write_text('jobs: [unclosed')
             with self.assertRaises(yaml.YAMLError):
                 CIConfigGenerator(directory, directory).generate('fixture', ['broken.yml.j2'])
+
+    def test_all_templates_and_supported_quality_branches(self):
+        combinations = [
+            ('ci-quality-gates', 'quality-assurance.yml.j2'),
+            ('ci-quality-gates', 'pre-commit-config.yaml.j2'),
+            ('ci-test-pyramid', 'ci-pyramid.yml.j2'),
+            ('ci-test-pyramid', 'pytest.ini.j2'),
+            ('ci-local-validation', 'local-ci.sh.j2'),
+        ]
+        for language in ['python', 'javascript', 'go', 'rust']:
+            for skill, template in combinations:
+                with self.subTest(language=language, template=template), tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    (root / 'ci-skills.yaml').write_text('project:\n  languages:\n    primary: ' + language + '\n')
+                    generator = CIConfigGenerator(directory, ROOT / 'skills' / skill)
+                    if language != 'python' and skill == 'ci-test-pyramid':
+                        with self.assertRaisesRegex(ValueError, 'requires Python'):
+                            generator.generate(skill, [template])
+                        continue
+                    generated = generator.generate(skill, [template])
+                    text = generated[template.removesuffix('.j2')]
+                    if template.endswith('.ini.j2'):
+                        parsed = configparser.ConfigParser()
+                        parsed.read_string(text)
+                        self.assertIn('--strict-markers', parsed['pytest']['addopts'])
+                    elif template.endswith('.sh.j2'):
+                        script = root / 'local-ci.sh'
+                        script.write_text(text)
+                        subprocess.run(['bash', '-n', str(script)], check=True)
+                        subprocess.run(['bash', str(script), '--help'], check=True, capture_output=True)
+                        self.assertIn(generator.load_adapter(language)['test']['commands']['run_unit'], text)
+                        self.assertNotIn('((PASSED++))', text)
+                    elif template == 'pre-commit-config.yaml.j2':
+                        self.assertTrue(yaml.safe_load(text)['repos'])
+                    else:
+                        parsed = yaml.load(text, Loader=yaml.BaseLoader)
+                        if skill == 'ci-quality-gates':
+                            self.assertIn(language + '-quality', parsed['jobs'])
+                            self.assertEqual(parsed['env']['NODE_VERSION'], '24')
+                            if language == 'go':
+                                self.assertIn("go-version: '1.27'", text)
+
+    def test_generated_local_script_runs_all_checks_and_fails_truthfully(self):
+        import os
+        for language, runner in [('python', 'pytest'), ('javascript', 'npm'), ('go', 'go'), ('rust', 'cargo')]:
+            with self.subTest(language=language), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / 'ci-skills.yaml').write_text('project:\n  languages:\n    primary: ' + language + '\n')
+                generator = CIConfigGenerator(directory, ROOT / 'skills/ci-local-validation')
+                text = generator.generate('ci-local-validation', ['local-ci.sh.j2'])['local-ci.sh']
+                scripts = root / 'scripts'
+                scripts.mkdir()
+                script = scripts / 'local-ci.sh'
+                script.write_text(text)
+                bin_dir = root / 'bin'
+                bin_dir.mkdir()
+                for tool in ['python', 'jq', 'pytest', 'npm', 'go', 'cargo', 'flake8', 'black']:
+                    stub = bin_dir / tool
+                    stub.write_text('#!/bin/sh\nif [ "$FAIL_TOOL" = "' + tool + '" ]; then exit 1; fi\nexit 0\n')
+                    stub.chmod(0o755)
+                env = {**os.environ, 'PATH': str(bin_dir) + ':' + os.environ['PATH']}
+                good = subprocess.run(['bash', str(script)], env=env, capture_output=True, text=True)
+                self.assertEqual(good.returncode, 0, good.stdout + good.stderr)
+                self.assertIn('CI validation PASSED', good.stdout)
+                bad = subprocess.run(['bash', str(script)], env={**env, 'FAIL_TOOL': runner}, capture_output=True, text=True)
+                self.assertNotEqual(bad.returncode, 0)
+                self.assertIn('CI validation FAILED', bad.stdout)
 
 
 if __name__ == '__main__':

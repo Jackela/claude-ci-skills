@@ -72,7 +72,7 @@ deploy:
 
 # GitHub Actions defaults
 github_actions:
-  node_version: "20"
+  node_version: "24"
   python_version: "3.11"
-  go_version: "1.21"
+  go_version: "1.27"
   rust_version: "stable"

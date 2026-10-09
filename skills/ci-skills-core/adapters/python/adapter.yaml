@@ -37,7 +37,7 @@ test:
   # Commands
   commands:
     install_deps: "pip install -r requirements.txt"
-    install_test_deps: "pip install pytest pytest-cov pytest-asyncio"
+    install_test_deps: "pip install pytest pytest-cov pytest-asyncio pytest-timeout"
     run_all: "pytest"
     run_unit: "pytest -m unit"
     run_integration: "pytest -m integration"

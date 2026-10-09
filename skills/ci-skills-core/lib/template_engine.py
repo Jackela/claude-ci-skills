@@ -117,7 +117,20 @@ class CIConfigGenerator:
             return base
 
         config = {}
-        for path in [self.core_dir / "config/defaults.yaml", self.project_root / "ci-skills.yaml"]:
+        paths = [self.core_dir / "config/defaults.yaml"]
+        for path in paths:
+            if path.exists():
+                loaded = yaml.safe_load(path.read_text()) or {}
+                if not isinstance(loaded, dict):
+                    raise ValueError(f"Configuration must be a mapping: {path}")
+                merge(config, loaded)
+        skill_defaults = self.skill_dir / "config/defaults.yaml"
+        if skill_defaults.exists() and self.skill_dir != self.core_dir:
+            loaded = yaml.safe_load(skill_defaults.read_text()) or {}
+            if not isinstance(loaded, dict):
+                raise ValueError(f"Configuration must be a mapping: {skill_defaults}")
+            merge(config, {self.skill_dir.name.removeprefix("ci-"): loaded})
+        for path in [self.project_root / "ci-skills.yaml"]:
             if path.exists():
                 loaded = yaml.safe_load(path.read_text()) or {}
                 if not isinstance(loaded, dict):
@@ -151,12 +164,13 @@ class CIConfigGenerator:
             "project": config.get("project", {}),
             "config": config,
             "adapters": adapters,
+            "primary_adapter": adapters[config["project"]["languages"]["primary"]],
             # Helper values
             "python_version": config.get("github_actions", {}).get(
                 "python_version", "3.11"
             ),
-            "node_version": config.get("github_actions", {}).get("node_version", "20"),
-            "go_version": config.get("github_actions", {}).get("go_version", "1.21"),
+            "node_version": config.get("github_actions", {}).get("node_version", "24"),
+            "go_version": config.get("github_actions", {}).get("go_version", "1.27"),
         }
 
     def generate(self, skill_name: str, templates: list) -> dict:
@@ -188,6 +202,8 @@ class CIConfigGenerator:
 
         results = {}
         for template in templates:
+            if template in {"ci-pyramid.yml.j2", "pytest.ini.j2"} and primary != "python":
+                raise ValueError(f"{template} requires Python; use language adapters for other test runners")
             output_name = template.replace(".j2", "")
             content = engine.render(template, context)
             if output_name.endswith((".yml", ".yaml")):

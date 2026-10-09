@@ -31,7 +31,7 @@ python -m venv .venv
 ```
 
 `CIConfigGenerator(project_root, skill_dir).generate(skill_name, templates)` is the
-library generation entry. It merges core defaults with `ci-skills.yaml`, detects a
+library generation entry. It merges core and skill defaults with `ci-skills.yaml`, detects a
 missing primary language, loads core adapters, preserves Actions expressions, and
 parses generated YAML before returning it. Required missing variables, unsupported
 languages, invalid configuration and malformed YAML raise errors. Tests cover
@@ -122,3 +122,21 @@ performance:
 ## License
 
 MIT
+
+Generated files are returned by name. Apply `quality-assurance.yml` and
+`ci-pyramid.yml` under `.github/workflows/`, save `pre-commit-config.yaml` as
+`.pre-commit-config.yaml`, `pytest.ini` at the project root, and `local-ci.sh` as
+`scripts/local-ci.sh`. Copy the Python pyramid helper scripts from
+`skills/ci-test-pyramid/scripts/` to `scripts/testing/` before using pyramid or
+marker checks. Install the chosen language adapter's test dependencies first.
+Python-specific pyramid/pytest templates reject non-Python primary projects;
+quality and local validation templates support the four existing adapters.
+Local validation uses the primary adapter's commands, retains an explicit skip
+for Rust's unconfigured E2E command, aggregates failures, and returns nonzero
+when a required check fails.
+
+Runtime defaults are Node 24 LTS and Go 1.27 (reviewed 2026-10-09 against
+[Node's release schedule](https://github.com/nodejs/Release) and
+[Go 1.27 release notes](https://go.dev/doc/go1.27)). Both fit the existing adapter
+minimum ranges. These generation checks do not establish consuming-project
+lint-tool compatibility; projects can override versions in `ci-skills.yaml`.
