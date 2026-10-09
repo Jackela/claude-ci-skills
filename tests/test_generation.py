@@ -5,6 +5,7 @@ from pathlib import Path
 import yaml
 import configparser
 import subprocess
+import shutil
 from jinja2 import UndefinedError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -94,6 +95,12 @@ class GenerationTests(unittest.TestCase):
                         self.assertTrue(yaml.safe_load(text)['repos'])
                     else:
                         parsed = yaml.load(text, Loader=yaml.BaseLoader)
+                        actionlint = shutil.which('actionlint')
+                        if actionlint:
+                            workflow_file = root / template.removesuffix('.j2')
+                            workflow_file.write_text(text)
+                            result = subprocess.run([actionlint, str(workflow_file)], capture_output=True, text=True)
+                            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                         if skill == 'ci-quality-gates':
                             self.assertIn(language + '-quality', parsed['jobs'])
                             self.assertEqual(parsed['env']['NODE_VERSION'], '24')

@@ -45,12 +45,14 @@ jobs:
           python scripts/testing/pyramid-monitor.py --format json > pyramid-report.json
           SCORE=$(jq '.score' pyramid-report.json)
           PASSED=$(jq '.passed' pyramid-report.json)
-          echo "score=$SCORE" >> $GITHUB_OUTPUT
-          echo "passed=$PASSED" >> $GITHUB_OUTPUT
-          echo "## Test Pyramid Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Score:** $SCORE/10.0" >> $GITHUB_STEP_SUMMARY
-          python scripts/testing/pyramid-monitor.py --format markdown >> $GITHUB_STEP_SUMMARY
+          echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+          echo "passed=$PASSED" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Test Pyramid Report"
+            echo ""
+            echo "**Score:** $SCORE/10.0"
+            python scripts/testing/pyramid-monitor.py --format markdown
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check Score Threshold
         run: |
