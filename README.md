@@ -17,6 +17,29 @@ A modular, extensible CI/CD Skills framework for Claude Code. Package your CI be
 claude /plugin https://github.com/Jackela/claude-ci-skills
 ```
 
+## Development and validation
+
+This repository is maintained with AI assistance. Markdown skills, YAML configuration,
+and Python libraries are the editable sources; generated workflows must be reviewed
+before applying them to a consuming project. No skill or plugin version is changed here.
+
+```bash
+python -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python skills/ci-skills-core/lib/detector.py /path/to/project
+```
+
+`CIConfigGenerator(project_root, skill_dir).generate(skill_name, templates)` is the
+library generation entry. It merges core defaults with `ci-skills.yaml`, detects a
+missing primary language, loads core adapters, preserves Actions expressions, and
+parses generated YAML before returning it. Required missing variables, unsupported
+languages, invalid configuration and malformed YAML raise errors. Tests cover
+isolated Python and JavaScript quality workflows and the Python pyramid workflow.
+YAML parsing is a structural check; it does not prove consumers have installed the
+linters, test scripts or deployment credentials. Pyramid scripts currently classify
+Python tests; the 70/20/10 defaults are configurable guidance, not proof of test quality.
+
 ## Quick Start
 
 Ask Claude Code:
@@ -25,7 +48,7 @@ Ask Claude Code:
 Set up CI for my Python/React project
 ```
 
-Claude will automatically:
+The skills guide Claude to:
 1. Detect your project's languages and frameworks
 2. Generate appropriate CI workflows
 3. Set up quality gates and pre-commit hooks

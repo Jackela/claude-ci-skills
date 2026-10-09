@@ -48,13 +48,11 @@ jobs:
 {% if config.quality_gates.python.get('mypy', true) %}
       - name: Type check with mypy
         run: mypy src/ --ignore-missing-imports
-        continue-on-error: true
 {% endif %}
 
 {% if config.quality_gates.python.get('bandit', true) %}
       - name: Security check with bandit
         run: bandit -r src/ -ll
-        continue-on-error: true
 {% endif %}
 {% endif %}
 

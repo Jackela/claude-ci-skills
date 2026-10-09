@@ -56,6 +56,8 @@ class ProjectDetector:
 
     def __init__(self, project_root: str = "."):
         self.root = Path(project_root).resolve()
+        if not self.root.is_dir():
+            raise ValueError(f"Project root is not a directory: {self.root}")
 
     def detect_languages(self) -> dict:
         """
@@ -171,7 +173,7 @@ class ProjectDetector:
             self.root / "pages",
             self.root / "app",
         ]
-        return any(d.is_dir() for d in indicators) or self.detect_frontend_framework()
+        return any(d.is_dir() for d in indicators) or bool(self.detect_frontend_framework())
 
     def has_docker(self) -> bool:
         """Check if project uses Docker."""
